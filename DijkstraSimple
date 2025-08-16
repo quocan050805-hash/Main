@@ -1,0 +1,61 @@
+import java.util.*;
+
+public class DijkstraSimple {
+    static final int INF = Integer.MAX_VALUE;
+
+    // Hàm tìm đỉnh có khoảng cách nhỏ nhất chưa được thăm
+    static int minDistance(int dist[], boolean visited[]) {
+        int min = INF, minIndex = -1;
+        for (int v = 0; v < dist.length; v++) {
+            if (!visited[v] && dist[v] <= min) {
+                min = dist[v];
+                minIndex = v;
+            }
+        }
+        return minIndex;
+    }
+
+    // Thuật toán Dijkstra
+    static void dijkstra(int graph[][], int src) {
+        int V = graph.length;
+        int dist[] = new int[V];        // mảng lưu khoảng cách ngắn nhất
+        boolean visited[] = new boolean[V]; // đánh dấu đỉnh đã thăm
+
+        // Khởi tạo
+        Arrays.fill(dist, INF);
+        dist[src] = 0;
+
+        // Duyệt tất cả các đỉnh
+        for (int count = 0; count < V - 1; count++) {
+            int u = minDistance(dist, visited);
+            visited[u] = true;
+
+            // Cập nhật khoảng cách các đỉnh kề
+            for (int v = 0; v < V; v++) {
+                if (!visited[v] && graph[u][v] != 0 &&
+                        dist[u] != INF && dist[u] + graph[u][v] < dist[v]) {
+                    dist[v] = dist[u] + graph[u][v];
+                }
+            }
+        }
+
+        // In kết quả
+        System.out.println("Khoảng cách ngắn nhất từ đỉnh " + src + ":");
+        for (int i = 0; i < V; i++) {
+            System.out.println("Tới " + i + " = " + dist[i]);
+        }
+    }
+
+    public static void main(String[] args) {
+        // Ma trận kề biểu diễn đồ thị
+        int graph[][] = {
+                {0, 4, 2, 0, 0},
+                {4, 0, 1, 5, 0},
+                {2, 1, 0, 8, 10},
+                {0, 5, 8, 0, 2},
+                {0, 0, 10, 2, 0}
+        };
+
+        dijkstra(graph, 0); // xuất phát từ đỉnh 0
+    }
+}

@@ -1,0 +1,39 @@
+public class EncapsulatedStack {
+    private int[] data;
+    private int top;
+    private int capacity;
+
+    public EncapsulatedStack(int size) {
+        capacity = size;
+        data = new int[capacity];
+        top = -1;
+    }
+
+    public void push(int value) {
+        if (top < capacity - 1) {
+            data[++top] = value;
+        } else {
+            System.out.println("Tràn ngăn xếp");
+        }
+    }
+
+    public int pop() {
+        if (top >= 0) {
+            return data[top--];
+        } else {
+            throw new RuntimeException("Rỗng ngăn xếp");
+        }
+    }
+
+    public int peek() {
+        if (top >= 0) {
+            return data[top];
+        } else {
+            throw new RuntimeException("Ngăn xếp trống");
+        }
+    }
+
+    public boolean isEmpty() {
+        return top == -1;
+    }
+}

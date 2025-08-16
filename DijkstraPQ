@@ -1,0 +1,159 @@
+import java.util.*;
+
+// =========================
+// P3 – Java Implementation
+// Dijkstra với PriorityQueue (Min-Heap)
+// =========================
+public class DijkstraPQ {
+
+    // Hằng số vô cực
+    private static final int INF = Integer.MAX_VALUE;
+
+    // Cạnh của đồ thị: đi tới đỉnh 'to' với trọng số 'w'
+    static class Edge {
+        int to, w;
+        Edge(int to, int w) { this.to = to; this.w = w; }
+    }
+
+    // ADT: Đồ thị dùng danh sách kề
+    static class Graph {
+        int V; // số đỉnh
+        List<List<Edge>> adj;
+
+        Graph(int V) {
+            this.V = V;
+            adj = new ArrayList<>(V);
+            for (int i = 0; i < V; i++) {
+                adj.add(new ArrayList<>());
+            }
+        }
+
+        // Thêm cạnh: u -> v với trọng số w
+        // undirected = true nếu muốn vô hướng (tự động thêm v->u)
+        void addEdge(int u, int v, int w, boolean undirected) {
+            if (u < 0 || u >= V || v < 0 || v >= V)
+                throw new IllegalArgumentException("Chỉ số đỉnh không hợp lệ");
+            if (w < 0)
+                throw new IllegalArgumentException("Dijkstra không hỗ trợ trọng số âm");
+            adj.get(u).add(new Edge(v, w));
+            if (undirected) adj.get(v).add(new Edge(u, w));
+        }
+    }
+
+    // Nút trong hàng đợi ưu tiên: (đỉnh, khoảng cách tạm thời)
+    static class Node implements Comparable<Node> {
+        int v, dist;
+        Node(int v, int dist) { this.v = v; this.dist = dist; }
+        public int compareTo(Node o) { return Integer.compare(this.dist, o.dist); }
+    }
+
+    // Kết quả chạy Dijkstra
+    static class Result {
+        int[] dist; // khoảng cách ngắn nhất từ src đến mỗi đỉnh
+        int[] prev; // để khôi phục đường đi
+        Result(int[] dist, int[] prev) { this.dist = dist; this.prev = prev; }
+    }
+
+    // Thuật toán Dijkstra với PriorityQueue (độ phức tạp ~ O((V+E) log V))
+    static Result dijkstra(Graph g, int src) {
+        int V = g.V;
+        int[] dist = new int[V];
+        int[] prev = new int[V];
+        Arrays.fill(dist, INF);
+        Arrays.fill(prev, -1);
+
+        PriorityQueue<Node> pq = new PriorityQueue<>();
+        dist[src] = 0;
+        pq.offer(new Node(src, 0));
+
+        while (!pq.isEmpty()) {
+            Node cur = pq.poll();
+            int u = cur.v;
+
+            // Bỏ qua phần tử "cũ" trong heap (lazy deletion)
+            if (cur.dist != dist[u]) continue;
+
+            // Relax các cạnh kề
+            for (Edge e : g.adj.get(u)) {
+                int v = e.to;
+                int w = e.w;
+                if (dist[u] != INF && dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    prev[v] = u;              // ghi nhớ cha để khôi phục đường đi
+                    pq.offer(new Node(v, dist[v]));
+                }
+            }
+        }
+        return new Result(dist, prev);
+    }
+
+    // Khôi phục đường đi src -> dest từ mảng prev
+    static List<Integer> reconstructPath(int[] prev, int src, int dest) {
+        List<Integer> path = new ArrayList<>();
+        if (dest < 0 || dest >= prev.length) return path;
+        // Nếu không có đường đi
+        // (có thể kiểm tra từ dist[dest] == INF ở ngoài)
+        for (int at = dest; at != -1; at = prev[at]) {
+            path.add(at);
+            if (at == src) break;
+        }
+        Collections.reverse(path);
+        // Nếu đầu danh sách không phải src => không có đường hợp lệ
+        if (path.isEmpty() || path.get(0) != src) return Collections.emptyList();
+        return path;
+    }
+
+    // In toàn bộ kết quả: khoảng cách + đường đi tới từng đỉnh
+    static void printAllResults(Result res, int src) {
+        System.out.println("Nguồn (source) = " + src);
+        for (int v = 0; v < res.dist.length; v++) {
+            if (res.dist[v] == INF) {
+                System.out.println("Đỉnh " + v + ": không có đường đi");
+            } else {
+                List<Integer> path = reconstructPath(res.prev, src, v);
+                System.out.print("Đỉnh " + v + " | dist = " + res.dist[v] + " | path: ");
+                for (int i = 0; i < path.size(); i++) {
+                    System.out.print(path.get(i));
+                    if (i + 1 < path.size()) System.out.print(" -> ");
+                }
+                System.out.println();
+            }
+        }
+    }
+
+    // Demo
+    public static void main(String[] args) {
+        // Ví dụ: 6 đỉnh (0..5)
+        Graph g = new Graph(6);
+
+        // Thêm cạnh (có thể đổi undirected = true nếu muốn vô hướng)
+        boolean undirected = false;
+
+        // Ví dụ giống phần P2 (có mở rộng):
+        // 0->1(4), 0->2(2), 1->2(1), 1->3(5), 2->3(8), 2->4(10), 3->4(2), 3->5(6), 4->5(3)
+        g.addEdge(0, 1, 4, undirected);
+        g.addEdge(0, 2, 2, undirected);
+        g.addEdge(1, 2, 1, undirected);
+        g.addEdge(1, 3, 5, undirected);
+        g.addEdge(2, 3, 8, undirected);
+        g.addEdge(2, 4, 10, undirected);
+        g.addEdge(3, 4, 2, undirected);
+        g.addEdge(3, 5, 6, undirected);
+        g.addEdge(4, 5, 3, undirected);
+
+        int src = 0;
+        Result res = dijkstra(g, src);
+        printAllResults(res, src);
+
+        // Ví dụ: in riêng đường đi src -> dest
+        int dest = 5;
+        if (res.dist[dest] == INF) {
+            System.out.println("Không có đường đi từ " + src + " tới " + dest);
+        } else {
+            List<Integer> path = reconstructPath(res.prev, src, dest);
+            System.out.println("\nĐường đi ngắn nhất " + src + " -> " + dest +
+                    " (độ dài = " + res.dist[dest] + "): " + path);
+        }
+    }
+}
+

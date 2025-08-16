@@ -1,0 +1,114 @@
+import java.util.*;
+
+class Student {
+    String studentID;
+    String name;
+    double[] scores;
+    double GPA;
+    String grade;
+
+    public Student(String studentID, String name, double[] scores) {
+        this.studentID = studentID;
+        this.name = name;
+        this.scores = scores;
+        this.GPA = calculateGPA();
+        this.grade = classifyGrade();
+    }
+
+    private double calculateGPA() {
+        double sum = 0;
+        for (double score : scores) {
+            sum += score;
+        }
+        return Math.round((sum / scores.length) * 100.0) / 100.0;
+    }
+
+    private String classifyGrade() {
+        if (GPA >= 8.0) return "Giỏi";
+        else if (GPA >= 6.5) return "Khá";
+        else if (GPA >= 5.0) return "Trung bình";
+        else return "Yếu";
+    }
+
+    public void display() {
+        System.out.println("MSSV: " + studentID + ", Tên: " + name + ", GPA: " + GPA + ", Học lực: " + grade);
+    }
+}
+
+public class StudentManager {
+    static List<Student> studentList = new ArrayList<>();
+    static Scanner sc = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        int choice;
+        do {
+            System.out.println("\n----- MENU -----");
+            System.out.println("1. Thêm sinh viên");
+            System.out.println("2. Hiển thị danh sách");
+            System.out.println("3. Tìm sinh viên theo MSSV");
+            System.out.println("4. Thoát");
+            System.out.print("Chọn: ");
+            choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+                case 1 -> addStudent();
+                case 2 -> displayAll();
+                case 3 -> searchStudent();
+                case 4 -> System.out.println("Thoát chương trình.");
+                default -> System.out.println("Chọn không hợp lệ.");
+            }
+        } while (choice != 4);
+    }
+
+    public static void addStudent() {
+        System.out.print("Nhập MSSV: ");
+        String id = sc.nextLine();
+
+        System.out.print("Nhập tên: ");
+        String name = sc.nextLine();
+
+        System.out.print("Nhập số môn học: ");
+        int subjectCount = sc.nextInt();
+        double[] scores = new double[subjectCount];
+
+        for (int i = 0; i < subjectCount; i++) {
+            System.out.print("Điểm môn " + (i + 1) + ": ");
+            scores[i] = sc.nextDouble();
+        }
+
+        Student student = new Student(id, name, scores);
+        studentList.add(student);
+        System.out.println("✅ Thêm sinh viên thành công.");
+    }
+
+    public static void displayAll() {
+        if (studentList.isEmpty()) {
+            System.out.println("📭 Danh sách trống.");
+        } else {
+            System.out.println("\n📚 DANH SÁCH SINH VIÊN:");
+            for (Student s : studentList) {
+                s.display();
+            }
+        }
+    }
+
+    public static void searchStudent() {
+        System.out.print("Nhập MSSV cần tìm: ");
+        String id = sc.nextLine();
+
+        boolean found = false;
+        for (Student s : studentList) {
+            if (s.studentID.equalsIgnoreCase(id)) {
+                System.out.println("🔍 Kết quả tìm kiếm:");
+                s.display();
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            System.out.println("❌ Không tìm thấy sinh viên có MSSV: " + id);
+        }
+    }
+}
